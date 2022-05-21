@@ -1,4 +1,5 @@
 using LinearAlgebra
+using GraphRecipes, Plots
 
 function set_diagonal(M::Matrix, val::Number)
     X = M
@@ -16,15 +17,15 @@ end
 function gen_sym_adj_mat(n)
     A = rand(0.0:1.0, n, n)
     A = A - tril(A) + triu(A)'
-    A = set_diagonal(A, 1)
+    A = set_diagonal(A, 0)
     return A
 end
 
 ### generate network
-const num_of_layers = 3
-const matrix_dimensions = 4
+const NUM_OF_LAYERS = 3
+const MATRIX_SIZE = 4
 N = Matrix[]
-append!(N, [gen_sym_adj_mat(matrix_dimensions) for i in 1:num_of_layers])
+append!(N, [gen_sym_adj_mat(MATRIX_SIZE) for i in 1:NUM_OF_LAYERS])
 for A in N
     display(A)
     println()
@@ -36,11 +37,11 @@ m = N[2]
 # connection similarity between target layer m and auxiliary layer k
 function θ(l::Matrix, m::Matrix)
     sum = 0.0
-    for i in 1:matrix_dimensions
+    for i in 1:MATRIX_SIZE
         numerator = 0.0
         denominator = 0.0
 
-        for j in 1:matrix_dimensions
+        for j in 1:MATRIX_SIZE
             numerator += l[i, j] * m[i, j]
 
             denominator += m[i, j]
@@ -51,7 +52,7 @@ function θ(l::Matrix, m::Matrix)
         sum += numerator / denominator
     end
 
-    return (1 / size(N, 1)#= TODO: check if correct =#) * sum
+    return (1 / size(N, 1)) * sum
 end
 
 function calc_c(WmT, Wm, WAm, CAm, α = 0.5, β = 0.5)
@@ -71,7 +72,7 @@ end
 # (norm = frobenius norm)
 
 ### compute proximity matrix WAm (proximity / similarity of each layer to m)
-WAm = zeros(matrix_dimensions, matrix_dimensions)
+WAm = zeros(MATRIX_SIZE, MATRIX_SIZE)
 for k in N
     # Wk = Ak but could be replaced
     Wk = k
@@ -89,8 +90,8 @@ display(WAm)
 println()
 
 ### approximate intralayer contribution matrix Cm and interlayer contribution matrix CAm
-Cm = zeros(matrix_dimensions, matrix_dimensions)
-CAm = rand(matrix_dimensions, matrix_dimensions)
+Cm = zeros(MATRIX_SIZE, MATRIX_SIZE)
+CAm = rand(MATRIX_SIZE, MATRIX_SIZE)
 CAm_old = nothing
 Cm_old = nothing
 
@@ -121,5 +122,12 @@ println()
 println("Interlayer likelihood LAm:")
 display(LAm)
 println()
+
+#==================================================#
+# plot matrices
+
+for i in 1:NUM_OF_LAYERS
+    savefig(graphplot(N[i], names=1:MATRIX_SIZE), "N_$i.png")
+end
 
 
