@@ -58,10 +58,11 @@ function calc_c(WmT, Wm, WAm, CAm, α = 0.5, β = 0.5)
     # Cm = numpy.matmul(numpy.linalg.inv(numpy.matmul(WmT, Wm) + beta * numpy.eye(Wm.shape[0]) + alpha * numpy.matmul(WmT, Wm)), (numpy.matmul(WmT, Wm) + alpha * numpy.matmul(numpy.matmul(WmT, WAm), CAm)))
     Cm = inv(WmT*Wm + β*I + α*WmT*Wm) * (WmT*Wm + α*WmT*WAm*CAm)
     return Cm
+end
 
 function calc_c_a(WAmT, WAm, Wm, Cm, α = 0.5, γ = 0.5)
     # CAm = numpy.matmul(numpy.linalg.inv(numpy.matmul(WAmT, WAm) + gamma * numpy.eye(Wm.shape[0]) + alpha * numpy.matmul(WAmT, WAm)), (numpy.matmul(WAmT, WAm) + alpha * numpy.matmul(numpy.matmul(WAmT, Wm), Cm)))
-    Cm = inv(WAmT*WAm + γ*I + α*WAmT*WAm) * (WAmT*WAm + α*WAmT*Wm*Cm)
+    CAm = inv(WAmT*WAm + γ*I + α*WAmT*WAm) * (WAmT*WAm + α*WAmT*Wm*Cm)
     return CAm
 end
 
@@ -76,7 +77,7 @@ for k in N
     Wk = k
 
     if (k != m)
-        WAm += θ(m, k) * Wk
+        global WAm += θ(m, k) * Wk
     end
 end
 
@@ -93,14 +94,14 @@ CAm = rand(matrix_dimensions, matrix_dimensions)
 CAm_old = nothing
 Cm_old = nothing
 
-println("Approximating Cm and CAm")
+println("\nApproximating Cm and CAm")
 for i in 1:10 # choosen randomly
-    Cm_old = Cm
-    CAm_old = CAm
+    global Cm_old = Cm
+    global CAm_old = CAm
 
     # update steps
-    Cm = calc_c(WmT, Wm, WAm, CAm)
-    CAm = calc_c_a(WAmT, WAm, Wm, Cm)
+    global Cm = calc_c(WmT, Wm, WAm, CAm)
+    global CAm = calc_c_a(WAmT, WAm, Wm, Cm)
     ΔCAm = norm(CAm_old - CAm)
     ΔCm = norm(Cm_old - Cm)
 
@@ -113,10 +114,12 @@ Lm = Wm * Cm
 ### compute intralayer likelihood matrix Lm
 LAm = WAm * CAm
 
-println("Intralayer likelihood Lm:")
+println("\nIntralayer likelihood Lm:")
 display(Lm)
+println()
 
 println("Interlayer likelihood LAm:")
 display(LAm)
+println()
 
 
