@@ -24,15 +24,15 @@ end
 ### generate network
 const NUM_OF_LAYERS = 3
 const MATRIX_SIZE = 4
-N = Matrix[]
-append!(N, [gen_sym_adj_mat(MATRIX_SIZE) for i in 1:NUM_OF_LAYERS])
-for A in N
+G = Matrix[]
+append!(G, [gen_sym_adj_mat(MATRIX_SIZE) for i in 1:NUM_OF_LAYERS])
+for A in G
     display(A)
     println()
 end
 
 ### select target layer m in N (e.g. layer 2)
-m = N[2]
+m = G[2]
 
 # connection similarity between target layer m and auxiliary layer k
 function θ(l::Matrix, m::Matrix)
@@ -51,8 +51,8 @@ function θ(l::Matrix, m::Matrix)
 
         sum += numerator / denominator
     end
-
-    return (1 / size(N, 1)) * sum
+    N = size(G, 1)
+    return (1 / N) * sum
 end
 
 function calc_c(WmT, Wm, WAm, CAm, α = 0.5, β = 0.5)
@@ -69,11 +69,9 @@ end
 
 #===============================================#
 
-# (norm = frobenius norm)
-
 ### compute proximity matrix WAm (proximity / similarity of each layer to m)
 WAm = zeros(MATRIX_SIZE, MATRIX_SIZE)
-for k in N
+for k in G
     # Wk = Ak but could be replaced
     Wk = k
 
@@ -103,6 +101,8 @@ for i in 1:10 # choosen randomly
     # update steps
     global Cm = calc_c(WmT, Wm, WAm, CAm)
     global CAm = calc_c_a(WAmT, WAm, Wm, Cm)
+
+    # (norm = frobenius norm)
     ΔCAm = norm(CAm_old - CAm)
     ΔCm = norm(Cm_old - Cm)
 
@@ -127,7 +127,7 @@ println()
 # plot matrices
 
 for i in 1:NUM_OF_LAYERS
-    savefig(graphplot(N[i], names=1:MATRIX_SIZE), "N_$i.png")
+    savefig(graphplot(G[i], names=1:MATRIX_SIZE), "G_$(i)_mat.png")
 end
 
 
