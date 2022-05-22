@@ -2,6 +2,7 @@ using LinearAlgebra
 using GraphRecipes, Plots
 # using GraphPlot
 using Crayons
+using Printf
 
 function set_diagonal(M::Matrix, val::Number)
     X = M
@@ -26,7 +27,7 @@ end
 function mat_is_empty(m)
     empty = true;
     for i in 1:size(m, 1), j in 1:size(m, 2)
-        if (m[i][j] != 0.0 && m[i][j] !== nothing)
+        if (m[i, j] != 0.0 && m[i, j] !== nothing)
             empty = false
         end
     end
@@ -43,7 +44,7 @@ for i in 1:NUM_OF_LAYERS
     while mat_is_empty(mat)
         mat = gen_sym_adj_mat(MATRIX_SIZE)
     end
-    push(G, mat)
+    push!(G, mat)
 end
 
 for A in G
@@ -143,19 +144,11 @@ for i in 1:NUM_OF_LAYERS
     savefig(graphplot(G[i], names=1:MATRIX_SIZE), "G_$(i)_mat.png")
 end
 
-function float_to_uint(x)
-    if (x < 0.0)
-        return 0
-    end
-
-    return floor(UInt32, x)
-end
-
 
 function display_colored(m::Matrix)
     for i in 1:size(m, 1)
         for j in 1:size(m, 2)
-            col = round(255 * m[i][j])
+            col = round(255 * m[i, j])
             if col < 0
                 col = 0
             elseif col > 255
@@ -163,9 +156,9 @@ function display_colored(m::Matrix)
             end
             col = convert(UInt8, col)
             c = Crayon(background = (0,col,0), foreground = 0xFFFFFF)
-            print(c, string(round(m[x][y], digits = 5)))
+            print(c, (m[i, j] < 0 ? " " : "  ") * @sprintf("%.5f", m[i, j]) * " ")
         end
-        println()
+        print(Crayon(reset=true), "\n")
     end
 end
 
