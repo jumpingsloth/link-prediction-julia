@@ -2,7 +2,25 @@ using LinearAlgebra
 using GraphRecipes, Plots
 # using GraphPlot
 using Crayons
-using Printf
+using Formatting: printfmt
+
+function display_colored(m::Matrix, decimals)
+    for i in 1:size(m, 1)
+        for j in 1:size(m, 2)
+            col = round(255 * m[i, j])
+            if col < 0
+                col = 0
+            elseif col > 255
+                col = 255
+            end
+            col = convert(UInt8, col)
+            c = Crayon(background = (0,col,0), foreground = 0xFFFFFF)
+            print(c, (m[i, j] < 0 ? " " : "  "))
+            printfmt("{:.$(decimals)f} ", m[i, j])
+        end
+        print(Crayon(reset=true), "\n")
+    end
+end
 
 function set_diagonal(M::Matrix, val::Number)
     X = M
@@ -47,8 +65,10 @@ for i in 1:NUM_OF_LAYERS
     push!(G, mat)
 end
 
+println("========================================\n")
+printstyled("G Matrices\n\n"; bold=true)
 for A in G
-    display(A)
+    display_colored(A, 0)
     println()
 end
 
@@ -105,16 +125,14 @@ Wm = m
 WmT = Wm'
 WAmT = WAm'
 
-display(WAm)
-println()
-
 ### approximate intralayer contribution matrix Cm and interlayer contribution matrix CAm
 Cm = zeros(MATRIX_SIZE, MATRIX_SIZE)
 CAm = rand(MATRIX_SIZE, MATRIX_SIZE)
 CAm_old = nothing
 Cm_old = nothing
 
-println("\nApproximating Cm and CAm")
+printstyled("\nApproximating Cm and CAm\n"; bold=true)
+
 for i in 1:10 # choosen randomly
     global Cm_old = Cm
     global CAm_old = CAm
@@ -144,30 +162,10 @@ for i in 1:NUM_OF_LAYERS
     savefig(graphplot(G[i], names=1:MATRIX_SIZE), "G_$(i)_mat.png")
 end
 
-
-function display_colored(m::Matrix)
-    for i in 1:size(m, 1)
-        for j in 1:size(m, 2)
-            col = round(255 * m[i, j])
-            if col < 0
-                col = 0
-            elseif col > 255
-                col = 255
-            end
-            col = convert(UInt8, col)
-            c = Crayon(background = (0,col,0), foreground = 0xFFFFFF)
-            print(c, (m[i, j] < 0 ? " " : "  ") * @sprintf("%.5f", m[i, j]) * " ")
-        end
-        print(Crayon(reset=true), "\n")
-    end
-end
-
-display(Lm)
-println()
-println("\nIntralayer likelihood Lm:")
-display_colored(Lm)
+printstyled("\nIntralayer likelihood Lm:\n"; bold=true)
+display_colored(Lm, 5)
 println()
 
-println("Interlayer likelihood LAm:")
-display_colored(LAm)
+printstyled("Interlayer likelihood LAm:\n"; bold=true)
+display_colored(LAm, 5)
 println()
