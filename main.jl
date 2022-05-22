@@ -154,7 +154,7 @@ Lm = Wm * Cm
 ### compute intralayer likelihood matrix Lm
 LAm = WAm * CAm
 
-
+LFm = Lm + LAm
 #==================================================#
 # plot matrices
 
@@ -168,4 +168,8 @@ println()
 
 printstyled("Interlayer likelihood LAm:\n"; bold=true)
 display_colored(LAm, 5)
+println()
+
+printstyled("Final likelihood LFm:\n"; bold=true)
+display_colored(LFm, 5)
 println()
