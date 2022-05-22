@@ -1,11 +1,13 @@
 using LinearAlgebra
 using GraphRecipes, Plots
+# using GraphPlot
+using Crayons
 
 function set_diagonal(M::Matrix, val::Number)
     X = M
-    cols = size(M, 1)
-    rows = size(M, 2)
-    for i in 1:cols, j in 1:rows
+    rows = size(M, 1)
+    cols = size(M, 2)
+    for i in 1:rows, j in 1:cols
         if (i == j)
             X[i, j] = val
         end
@@ -21,11 +23,29 @@ function gen_sym_adj_mat(n)
     return A
 end
 
+function mat_is_empty(m)
+    empty = true;
+    for i in 1:size(m, 1), j in 1:size(m, 2)
+        if (m[i][j] != 0.0 && m[i][j] !== nothing)
+            empty = false
+        end
+    end
+    return empty
+end
+
+
 ### generate network
 const NUM_OF_LAYERS = 3
 const MATRIX_SIZE = 4
 G = Matrix[]
-append!(G, [gen_sym_adj_mat(MATRIX_SIZE) for i in 1:NUM_OF_LAYERS])
+for i in 1:NUM_OF_LAYERS
+    mat = gen_sym_adj_mat(MATRIX_SIZE)
+    while mat_is_empty(mat)
+        mat = gen_sym_adj_mat(MATRIX_SIZE)
+    end
+    push(G, mat)
+end
+
 for A in G
     display(A)
     println()
@@ -115,13 +135,6 @@ Lm = Wm * Cm
 ### compute intralayer likelihood matrix Lm
 LAm = WAm * CAm
 
-println("\nIntralayer likelihood Lm:")
-display(Lm)
-println()
-
-println("Interlayer likelihood LAm:")
-display(LAm)
-println()
 
 #==================================================#
 # plot matrices
@@ -130,4 +143,38 @@ for i in 1:NUM_OF_LAYERS
     savefig(graphplot(G[i], names=1:MATRIX_SIZE), "G_$(i)_mat.png")
 end
 
+function float_to_uint(x)
+    if (x < 0.0)
+        return 0
+    end
 
+    return floor(UInt32, x)
+end
+
+
+function display_colored(m::Matrix)
+    for i in 1:size(m, 1)
+        for j in 1:size(m, 2)
+            col = round(255 * m[i][j])
+            if col < 0
+                col = 0
+            elseif col > 255
+                col = 255
+            end
+            col = convert(UInt8, col)
+            c = Crayon(background = (0,col,0), foreground = 0xFFFFFF)
+            print(c, string(round(m[x][y], digits = 5)))
+        end
+        println()
+    end
+end
+
+display(Lm)
+println()
+println("\nIntralayer likelihood Lm:")
+display_colored(Lm)
+println()
+
+println("Interlayer likelihood LAm:")
+display_colored(LAm)
+println()
